@@ -12,7 +12,7 @@ class Trajectory:
 
 # Creating list of the trajectories with all the segments
 # traj_json - trajectory in a json format obtained from the Ruckig
-# Returns list of Trajectory
+# Returns list of Trajectory, list of timestamps of the end of the segments
 def process(traj_json):
     segment_id = 0
     n_dof = len(traj_json['independent_min_durations'])

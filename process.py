@@ -2,7 +2,26 @@ from dataclasses import dataclass
 
 
 @dataclass
+class Input:
+    n_dof: 0
+    current_position: []
+    intermediate_positions: []
+    target_position: []
+    max_velocity: []
+    max_acceleration: []
+    max_jerk: []
+
+
+@dataclass
 class Trajectory:
+    t: []
+    t_sum: []
+    p: []
+    v: []
+    a: []
+
+@dataclass
+class Segment:
     t: []
     t_sum: []
     p: []

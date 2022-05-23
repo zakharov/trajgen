@@ -10,6 +10,8 @@ class Input:
     max_velocity: []
     max_acceleration: []
     max_jerk: []
+    current_velocity: []
+    target_velocity:[]
 
 
 @dataclass
@@ -19,6 +21,7 @@ class Trajectory:
     p: []
     v: []
     a: []
+    min_duration: float = 0
 
 @dataclass
 class Segment:

@@ -115,6 +115,7 @@ def plot(input):
 
         for i in range(traj[0].degrees_of_freedom):
             for t in range(len(traj) - 1):
+                print(traj[t].profiles[0][i].v)
                 if sign(traj[t].profiles[0][i].v[4]) == sign(traj[t + 1].profiles[0][i].v[4]):
                     val = min(traj[t].profiles[0][i].v[4], traj[t + 1].profiles[0][i].v[4])
                     vel_sliders[counter].set_val(val)
@@ -139,6 +140,6 @@ def plot(input):
 
 
 if __name__ == '__main__':
-    inp = process.Input(3, [0, 0, 0], [[1.0, 2, 4], [-3, 5, 4]], [10, 20, 10], [1, 1, 1], [0.5, 0.5, 0.5], [1, 1, 1],
+    inp = process.Input(3, [0, 0, 0], [[1.0, 2, 4], [-3, 5, 4]], [10, 20, 10], [1, 1, 1], [0.5, 0.1, 0.5], [1, 1, 1],
                         [[0, 0, 0], [0, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 0], [0, 0, 0]])
     plot(inp)

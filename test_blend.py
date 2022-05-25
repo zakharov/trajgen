@@ -45,7 +45,7 @@ def mix_traj(traj, seg_time, dt, blend_factor):
             traj.v[i] = (traj.v[i] + traj.v[mid_index]) / 2.0
             del traj.v[mid_index]
 
-        print(f"{blending_time}")
+        # print(f"{blending_time}")
 
     # plt.plot(traj.p)
     plt.plot(diff(orig_trag_p, dt))
@@ -55,13 +55,22 @@ def mix_traj(traj, seg_time, dt, blend_factor):
 
 def interpolate_traj(n_dof, trajectory, dt):
     seg_time = []
+    vel_extremum = []
+    vel_extremum1 = []
     traj = [process.Trajectory([], [], [], [], []) for _ in range(n_dof)]
     global_time = 0
     for tr in trajectory:
         actual_time = 0
+        max_vel = [0 for _ in range(n_dof)]
+        min_vel = [0 for _ in range(n_dof)]
         while actual_time < tr.duration:
             pos, vel, acc = tr.at_time(actual_time)
             for i in range(tr.degrees_of_freedom):
+                if max_vel[i] < vel[i]:
+                    max_vel[i] = vel[i]
+                if min_vel[i] > vel[i]:
+                    min_vel[i] = vel[i]
+
                 traj[i].t.append(dt)
                 traj[i].t_sum.append(global_time)
                 traj[i].p.append(pos[i])
@@ -70,13 +79,15 @@ def interpolate_traj(n_dof, trajectory, dt):
 
             actual_time = actual_time + dt
             global_time = global_time + dt
-
+        vel_extremum.append(max_vel)
+        vel_extremum1.append(min_vel)
         seg_time.append(global_time)
 
     if len(seg_time) > 1:
         del seg_time[-1]
 
-    return traj, seg_time
+
+    return traj, seg_time, vel_extremum
 
 
 def calc_segment(orig_traj_input, n_intermediate):
@@ -89,13 +100,13 @@ def calc_segment(orig_traj_input, n_intermediate):
     else:
         # first segment
         if n_intermediate == 0:
-            logging.info('First segment')
+            logging.debug('First segment')
             traj_input.target_position = traj_input.intermediate_positions[0]
             inp = create_ruckig_input(traj_input, traj_input.current_velocity[0], traj_input.target_velocity[0])
             otg.calculate(inp, trajectory)
         # intermediate segment
         elif (n_intermediate > 0) and (n_intermediate < len(traj_input.intermediate_positions)):
-            logging.info('Intermediate segment')
+            logging.debug('Intermediate segment')
             traj_input.current_position = traj_input.intermediate_positions[n_intermediate - 1]
             traj_input.target_position = traj_input.intermediate_positions[n_intermediate]
             inp = create_ruckig_input(traj_input, traj_input.current_velocity[n_intermediate], traj_input.target_velocity[n_intermediate])
@@ -123,7 +134,6 @@ def calc_traj(traj_input):
 
 
 def create_ruckig_input(input, c_v, t_v):
-    print(f"{c_v}, {t_v}")
     inp = InputParameter(input.n_dof)
     inp.current_position = input.current_position
     inp.target_position = input.target_position

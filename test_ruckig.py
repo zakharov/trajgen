@@ -20,14 +20,15 @@ if __name__ == '__main__':
     inp.target_position = [5, 2, 10]
     inp.target_velocity = [0.0, 0, 0]
     inp.target_acceleration = [0.0, 0.0, 0.0]
+    # inp.intermediate_positions = [[1, 1, 1], [2, 2, 2], [3, 3, 3]]
 
     inp.max_velocity = [3.0, 1.0, 3.0]
     inp.max_acceleration = [3.0, 2.0, 1.0]
     inp.max_jerk = [4.0, 3.0, 2.0]
 
     # Set different constraints for negative direction
-    inp.min_velocity = [-1.0, -0.5, -3.0]
-    inp.min_acceleration = [-2.0, -1.0, -2.0]
+    # inp.min_velocity = [-1.0, -0.5, -3.0]
+    # inp.min_acceleration = [0, 0, -2.0]
 
     inp.synchronization = Synchronization.Phase
 
@@ -59,11 +60,11 @@ if __name__ == '__main__':
         t = t + dt
 
     print(traj)
-    plt.plot(traj[0].t_sum, traj[0].a)
+    # plt.plot(traj[0].t_sum, traj[0].a)
     plt.plot(traj[0].t_sum, traj[0].v)
-    plt.plot(traj[1].t_sum, traj[1].a)
+    # plt.plot(traj[1].t_sum, traj[1].a)
     plt.plot(traj[1].t_sum, traj[1].v)
-    plt.plot(traj[2].t_sum, traj[2].a)
+    # plt.plot(traj[2].t_sum, traj[2].a)
     plt.plot(traj[2].t_sum, traj[2].v)
     plt.show()
     # # Then, we can calculate the kinematic state at a given time

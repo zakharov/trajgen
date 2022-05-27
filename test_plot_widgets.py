@@ -57,14 +57,15 @@ def plot(input):
         traj = test_blend.calc_traj(input)
 
         counter = 0
-        # for t in range(len(traj)-1):
-        #     str = f"seg: {counter} "
-        #     for i in range(traj[t].degrees_of_freedom):
-        #         str = str + f"dof{i}: v = {traj[t].profiles[0][i].v[4]}, a = {traj[t].profiles[0][i].a[6]} "
-        #
-        #
-        #     print(str)
-        #     counter = counter + 1
+        for t in range(len(traj)):
+            print(f"dof: {dof}, seg: {t} {traj[t].profiles[0][dof]}")
+            str = f"seg: {counter} "
+            i = dof
+            # for i in range(traj[t].degrees_of_freedom):
+            str = str + f"dof{i}: v = {traj[t].profiles[0][i].v}, a = {traj[t].profiles[0][i].j} "
+
+            print(str)
+            counter = counter + 1
 
         traj, seg_time, vel_extremum = test_blend.interpolate_traj(input.n_dof, traj, 0.1)
 
@@ -108,31 +109,57 @@ def plot(input):
         return math.copysign(1.0, val)
 
     def calculate(event):
-        traj = test_blend.calc_traj(input)
-        counter = 0
+        max_iter = 15
+        for iter in range(max_iter):
+            counter = 0
+            traj = test_blend.calc_traj(input)
+            error = 0
+            error_threshold = 0.001
 
-        counter = 0
+            for i in range(traj[0].degrees_of_freedom):
+                for t in range(len(traj) - 1):
+                    # vel_in_the_middle_t0 = max(traj[t].profiles[0][i].v)
+                    # vel_in_the_middle_t1 = max(traj[t + 1].profiles[0][i].v)
+                    vel_in_the_middle_t0 = traj[t].profiles[0][i].v[4]
+                    vel_in_the_middle_t1 = traj[t + 1].profiles[0][i].v[4]
+                    if sign(vel_in_the_middle_t0) == sign(vel_in_the_middle_t1):
+                        err_val = min(abs(traj[t].profiles[0][i].a[6]), abs(traj[t + 1].profiles[0][i].a[2]))
+                        error = error + err_val * err_val / 2.0
 
-        for i in range(traj[0].degrees_of_freedom):
-            for t in range(len(traj) - 1):
-                print(traj[t].profiles[0][i].v)
-                if sign(traj[t].profiles[0][i].v[4]) == sign(traj[t + 1].profiles[0][i].v[4]):
-                    val = min(traj[t].profiles[0][i].v[4], traj[t + 1].profiles[0][i].v[4])
-                    vel_sliders[counter].set_val(val)
-                    print(val)
-                counter = counter + 1
-                # str = str + f"dof{i}: v = {}, a = {traj[t].profiles[0][i].a[6]} "
+            if error <= error_threshold:
+                print(f"Trajectory profiles are adjusted, err.: {error}, iter: {iter}", )
+                return
 
-        # for dof in range(input.n_dof):
-        #     val = 0
-        #     for i in range(len(vel_extremum) - 1):
-        #         val = min(vel_extremum[i][dof], vel_extremum[i + 1][dof])
-        #         vel_sliders[counter].set_val(val)
-        #         counter = counter + 1
+            for i in range(traj[0].degrees_of_freedom):
+                for t in range(len(traj) - 1):
+                    print(traj[t].profiles[0][i])
+                    print(traj[t+1].profiles[0][i])
+                    vel_in_the_middle_t0 = traj[t].profiles[0][i].v[4]
+                    vel_in_the_middle_t1 = traj[t + 1].profiles[0][i].v[4]
+                    # if (traj[t].profiles[0][i].v[4] < traj[t].profiles[0][i].v[5]):
+                    #     vel_in_the_middle_t0 = traj[t].profiles[0][i].v[4] + 0.01
+                    # else:
+                    #     vel_in_the_middle_t0 = traj[t].profiles[0][i].v[4]
+                    # if (traj[t+1].profiles[0][i].v[4] < traj[t+1].profiles[0][i].v[5]):
+                    #     vel_in_the_middle_t1 = traj[t + 1].profiles[0][i].v[4] + 0.01
+                    # else:
+                    #     vel_in_the_middle_t1 = traj[t + 1].profiles[0][i].v[4]
+                    if sign(vel_in_the_middle_t0) == sign(vel_in_the_middle_t1):
+                        new_exit_velocity_t0 = min(vel_in_the_middle_t0, vel_in_the_middle_t1)
+                        if iter < 3:
+                            vel_sliders[counter].set_val(new_exit_velocity_t0)
+                        else:
+                            vel_sliders[counter].set_val((vel_sliders[counter].val + new_exit_velocity_t0) / 2.0)
 
-        # vel_sliders[counter].set_val(val)
-        # vel_sliders[counter + 1].set_val(val)
-        # counter = counter + 1
+
+                        # err_val = min(abs(traj[t].profiles[0][i].a[6]), abs(traj[t + 1].profiles[0][i].a[2]))
+
+                        # print(f"dof: {i}, seg+1: {t+1}, acc.: {traj[t+1].profiles[0][i].a}")
+                        # error = error + err_val * err_val / 2.0
+                    counter = counter + 1
+
+        if error > error_threshold:
+            print(f"Failed to adjust trajectory profiles, err.: {error}")
 
     calc_button.on_clicked(calculate)
 
@@ -140,6 +167,10 @@ def plot(input):
 
 
 if __name__ == '__main__':
-    inp = process.Input(3, [0, 0, 0], [[1.0, 2, 4], [-3, 5, 4]], [10, 20, 10], [1, 1, 1], [0.5, 0.1, 0.5], [1, 1, 1],
-                        [[0, 0, 0], [0, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    # inp = process.Input(3, [0, 0, 0], [[1.0, 5, 4], [3, -5, 4]], [10, 20, 10], [1, 1, 1], [0.5, 0.5, 0.5], [1, 1, 1],
+    #                     [[0, 0, 0], [0, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    # inp = process.Input(3, [0, 0, 0], [[1.0, 2.0, 3.0], [3, 4, 5]], [10, 20, 10], [1, 1, 1], [0.5, 0.5, 0.5], [1, 1, 1],
+    #                     [[0, 0, 0], [0, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    inp = process.Input(3, [0, 0, 0], [[1.0, -2.0, 3.0], [3, 4, 5]], [10, 20, 10], [1, 1, 1], [0.5, 0.5, 0.5], [1, 1, 1],
+                                            [[0, 0, 0], [0, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 0], [0, 0, 0]])
     plot(inp)
